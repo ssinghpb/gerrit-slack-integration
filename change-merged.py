@@ -30,9 +30,14 @@ __author_email__ = "aleksey.didik@gmail.com"
 
 # Configuration section
 
-GERRIT_PORT = 22
-GERRIT_SERVER = "aleksey.didik@git.maxifier.com"
-WEBHOOK_URL = "https://maxifier.slack.com/services/hooks/incoming-webhook?token=Vjweuw0Ld7GszR3OqRdEXNpU"
+# Gerrit parameters is necessary to retrive commit message and author
+# Gerrit SSH port
+GERRIT_PORT = 29418
+# Gerrit host
+GERRIT_SERVER = "localhost"
+
+
+SLACK_WEBHOOK_URL = "https://company.slack.com/services/hooks/incoming-webhook?token=<token>"
 
 # Mapping #channel to Gerrit projects.
 # One channel can be mapped on several projects.
@@ -97,7 +102,7 @@ def webhook(channel, project, branch, name, change_url, message, submitter):
     if ICON_EMOJI != "":
         data["icon_emoji"] = ICON_EMOJI
 
-    urllib2.urlopen(WEBHOOK_URL, urllib.urlencode({"payload": json.dumps(data)})).read()
+    urllib2.urlopen(SLACK_WEBHOOK_URL, urllib.urlencode({"payload": json.dumps(data)})).read()
 
 
 def main():
