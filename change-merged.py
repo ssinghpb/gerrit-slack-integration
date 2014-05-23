@@ -33,7 +33,7 @@ __author_email__ = "aleksey.didik@gmail.com"
 # Gerrit parameters is necessary to retrive commit message and author
 # Gerrit SSH port
 GERRIT_PORT = 29418
-# Gerrit host
+# Gerrit host (leave localhost)
 GERRIT_SERVER = "localhost"
 
 
@@ -72,7 +72,7 @@ def getCommitInfo(commit_hash):
     except Exception, e:
         return ("Failed getting commit message, %s: %s" % (
                     e.__class__.__name__, e),
-                int(time.time()), "unknown user", "unknown@example.com")
+                 "unknown user")
 
 
 def webhook(channel, project, branch, name, change_url, message, submitter):  
@@ -116,7 +116,7 @@ def main():
     parser.add_option("--commit", help="Git commit hash")
     options, args = parser.parse_args()
 
-    message,name = getCommitInfo(options.commit)    
+    message, name = getCommitInfo(options.commit)    
 
     for channel in CHANNEL_MAPPING: 
         for project_re in CHANNEL_MAPPING[channel]:
