@@ -22,7 +22,7 @@
 #
 
 """
-    Gerrit Slack Integration Webhook
+    Gerrit Slack Integration Webhook for change-merge
 """
 
 __author__ = "Aleksey Didik"
@@ -31,13 +31,16 @@ __author_email__ = "aleksey.didik@gmail.com"
 # Configuration section
 
 # Gerrit parameters is necessary to retrive commit message and author
-# Gerrit SSH port
-GERRIT_PORT = 22
-# Gerrit host (leave localhost)
-GERRIT_SERVER = "aleksey.didik@git.maxifier.com"
+# Gerrit SSH port (default is 29418)
+GERRIT_PORT = 29418
 
+# Gerrit user@host 
+# Gerrit user what will be used to query gerrit for commit messages. 
+# Be sure you put ~/.ssh/id_rsa.pub to SSH Public Keys in this user Settings in Gerrit WebUI. 
+GERRIT_SERVER = "user@host"
 
-SLACK_WEBHOOK_URL = "https://maxifier.slack.com/services/hooks/incoming-webhook?token=Vjweuw0Ld7GszR3OqRdEXNpU"
+# Webhook URL provided by Incoming Webhook integration of Slack
+SLACK_WEBHOOK_URL = "https://<token>.slack.com/services/hooks/incoming-webhook?token=<token>"
 
 # Mapping #channel to Gerrit projects.
 # One channel can be mapped on several projects.
@@ -45,7 +48,7 @@ SLACK_WEBHOOK_URL = "https://maxifier.slack.com/services/hooks/incoming-webhook?
 # E.g. to map all projects to general and #web channel 
 # to projects web-project and web-design set:
 #     {"gerrit": [".*"], "web": ["web-project", "web-design"]}
-CHANNEL_MAPPING = {"#test": [".*"]}
+CHANNEL_MAPPING = {"#gerrit": [".*"]}
 
 # emoji icon to be used in a message.
 # set value "" to use Slack defined icon
@@ -64,9 +67,12 @@ from optparse import OptionParser
 
 def getCommitInfo(commit_hash):
     try:
-        result = json.loads(subprocess.Popen(
-            ["ssh", "-p", str(GERRIT_PORT), GERRIT_SERVER, "gerrit", "query", "--commit-message", "--format", "json", commit_hash],
-             stdout=subprocess.PIPE).communicate()[0].splitlines()[0])
+        result = json.loads(
+            subprocess.Popen(
+                ["ssh", "-p", str(GERRIT_PORT), GERRIT_SERVER, "gerrit", "query", "--commit-message", "--format", "json", commit_hash],
+                 stdout=subprocess.PIPE
+            ).communicate()[0].splitlines()[0]
+        )
         return (result["commitMessage"], result["owner"]["name"])
     except Exception, e:
         return ("Failed getting commit message, %s: %s" % (
@@ -96,7 +102,8 @@ def webhook(channel, project, branch, name, change_url, message, submitter):
             },
         ],
         "link_names": 1,        
-        "fallback" : "@{0} has merged change {1}\n Branch: {2}\n Link: {3}".format(submitter, message, branch, change_url)
+        "fallback" : "@{0} has merged change {1}\n Author: {2}\n Project: {3}\n Branch: {4}\n Link: {5}"
+            .format(submitter, message, name, project, branch, change_url)
     }
     if ICON_EMOJI != "":
         data["icon_emoji"] = ICON_EMOJI
