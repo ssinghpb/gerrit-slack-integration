@@ -32,12 +32,12 @@ __author_email__ = "aleksey.didik@gmail.com"
 
 # Gerrit parameters is necessary to retrive commit message and author
 # Gerrit SSH port
-GERRIT_PORT = 29418
+GERRIT_PORT = 22
 # Gerrit host (leave localhost)
-GERRIT_SERVER = "localhost"
+GERRIT_SERVER = "aleksey.didik@git.maxifier.com"
 
 
-SLACK_WEBHOOK_URL = "https://company.slack.com/services/hooks/incoming-webhook?token=<token>"
+SLACK_WEBHOOK_URL = "https://maxifier.slack.com/services/hooks/incoming-webhook?token=Vjweuw0Ld7GszR3OqRdEXNpU"
 
 # Mapping #channel to Gerrit projects.
 # One channel can be mapped on several projects.
@@ -45,7 +45,7 @@ SLACK_WEBHOOK_URL = "https://company.slack.com/services/hooks/incoming-webhook?t
 # E.g. to map all projects to general and #web channel 
 # to projects web-project and web-design set:
 #     {"gerrit": [".*"], "web": ["web-project", "web-design"]}
-CHANNEL_MAPPING = {"#general": [".*"]}
+CHANNEL_MAPPING = {"#test": [".*"]}
 
 # emoji icon to be used in a message.
 # set value "" to use Slack defined icon
@@ -64,10 +64,9 @@ from optparse import OptionParser
 
 def getCommitInfo(commit_hash):
     try:
-        result = json.loads(subprocess.check_output(
-                ["ssh", "-p", str(GERRIT_PORT), GERRIT_SERVER, "gerrit",
-                 "query", "--commit-message", "--format", "json",
-                 commit_hash]).split("\n")[0])
+        result = json.loads(subprocess.Popen(
+            ["ssh", "-p", str(GERRIT_PORT), GERRIT_SERVER, "gerrit", "query", "--commit-message", "--format", "json", commit_hash],
+             stdout=subprocess.PIPE).communicate()[0].splitlines()[0])
         return (result["commitMessage"], result["owner"]["name"])
     except Exception, e:
         return ("Failed getting commit message, %s: %s" % (
